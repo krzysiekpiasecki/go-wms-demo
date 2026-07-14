@@ -2,32 +2,18 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/kpiasecki/wms/internal/config"
+	"github.com/kpiasecki/wms/internal/repository/postgres"
 )
 
 func main() {
-	conn, err := pgx.Connect(
-		context.Background(),
-		config.DatabaseURL,
-	)
+	db, err := postgres.NewDatabase()
 	if err != nil {
-		panic(err)
-	}
-	defer conn.Close(context.Background())
-
-	var dbName string
-
-	err = conn.QueryRow(
-		context.Background(),
-		"SELECT current_database()",
-	).Scan(&dbName)
-
-	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	fmt.Println("Connected to database:", dbName)
+	defer db.Close(context.Background())
+
+	log.Println("Database connected")
 }
