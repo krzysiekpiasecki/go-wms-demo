@@ -25,11 +25,12 @@ func (r *OrderRepository) Create(order *domain.Order) error {
 	return r.db.QueryRow(
 		context.Background(),
 		`
-        INSERT INTO orders(status)
-        VALUES ($1)
-        RETURNING id
+		INSERT INTO orders(status, comment)
+		VALUES ($1, $2)
+		RETURNING id
         `,
 		order.Status,
+		order.Comment,
 	).Scan(&order.ID)
 }
 
@@ -39,7 +40,7 @@ func (r *OrderRepository) GetByID(id int64) (*domain.Order, error) {
 	err := r.db.QueryRow(
 		context.Background(),
 		`
-        SELECT id, status, created_at
+        SELECT id, status, comment, created_at
         FROM orders
         WHERE id = $1
         `,
@@ -47,6 +48,7 @@ func (r *OrderRepository) GetByID(id int64) (*domain.Order, error) {
 	).Scan(
 		&order.ID,
 		&order.Status,
+		&order.Comment,
 		&order.CreatedAt,
 	)
 

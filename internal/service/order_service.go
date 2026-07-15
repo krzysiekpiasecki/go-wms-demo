@@ -47,14 +47,15 @@ func (s *OrderService) CanFulfillOrder(productID int64, quantity int) error {
 	return nil
 }
 
-func (s *OrderService) CreateOrder(productID int64, quantity int) error {
+func (s *OrderService) CreateOrder(productID int64, quantity int, comment *string) error {
 	err := s.CanFulfillOrder(productID, quantity)
 	if err != nil {
 		return err
 	}
 
 	order := &domain.Order{
-		Status: domain.OrderStatusNew,
+		Status:  domain.OrderStatusNew,
+		Comment: comment,
 	}
 
 	return s.orderRepository.Create(order)

@@ -8,12 +8,14 @@ import (
 )
 
 type MockOrderRepository struct {
-	createErr error
-	created   bool
+	createErr  error
+	created    bool
+	savedOrder *domain.Order
 }
 
 func (m *MockOrderRepository) Create(order *domain.Order) error {
 	m.created = true
+	m.savedOrder = order
 	return m.createErr
 }
 
@@ -198,7 +200,7 @@ func TestCreateOrder(t *testing.T) {
 				inventoryRepo,
 			)
 
-			err := service.CreateOrder(1, test.quantity)
+			err := service.CreateOrder(1, test.quantity, nil)
 
 			if test.expectedErr == nil && !orderRepo.created {
 				t.Fatal("expected order to be created")
@@ -212,5 +214,40 @@ func TestCreateOrder(t *testing.T) {
 				t.Fatalf("expected %v, got %v", test.expectedErr, err)
 			}
 		})
+	}
+}
+
+func TestCreateOrderWithComment(t *testing.T) {
+	comment := "urgent"
+
+	inventoryRepo := &MockInventoryRepository{
+		inventory: &domain.Inventory{
+			ProductID: 1,
+			Quantity:  100,
+		},
+	}
+
+	orderRepo := &MockOrderRepository{}
+
+	service := NewOrderService(
+		orderRepo,
+		inventoryRepo,
+	)
+
+	err := service.CreateOrder(1, 10, &comment)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if orderRepo.savedOrder == nil {
+		t.Fatal("order was not saved")
+	}
+
+	if orderRepo.savedOrder.Comment == nil {
+		t.Fatal("comment was not saved")
+	}
+
+	if *orderRepo.savedOrder.Comment != "urgent" {
+		t.Fatalf("expected urgent, got %s", *orderRepo.savedOrder.Comment)
 	}
 }
