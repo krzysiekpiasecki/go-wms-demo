@@ -17,19 +17,4 @@ func main() {
 	}
 
 	defer db.Close(context.Background())
-
-	var version string
-
-	err = db.QueryRow(
-		context.Background(),
-		"SELECT version()",
-	).Scan(&version)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(version)
-
-	log.Println("Database connected")
 }
