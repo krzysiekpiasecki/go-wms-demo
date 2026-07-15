@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderCreateRequest",
+  "type": "object",
+  "required": [
+    "productId",
+    "quantity"
+  ],
+  "properties": {
+    "productId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "quantity": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "comment": {
+      "type": "string"
+    }
+  }
+}
