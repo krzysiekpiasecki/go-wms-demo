@@ -1,25 +1,449 @@
-# go-wms-demo
+# WMS API
 
-![go-wms-demo](assets/images/wms.png)
+Warehouse Management System (WMS) implemented in Go.
 
- Simple Warehouse Management System (WMS) demo implemented as a Go monolith with a database backend. 
- 
- The application supports inbound stock operations, order creation and validation based on available inventory, outbound shipments, and inventory reporting. Includes unit tests with code coverage above 50%.
+The project exposes a REST API for managing products and orders, using PostgreSQL as the persistence layer and Gin as the HTTP framework.
 
-## Project Structure
+---
 
-Initial project layout following Clean Architecture principles.
+# Features
+
+## Products
+
+- Get product by ID
+
+## Orders
+
+- Create order
+- Get order by ID
+- Update order status
+- Order items support
+
+## Inventory
+
+- Stock availability validation before order creation
+
+## HTTP
+
+- REST API based on Gin
+- Request validation
+- JSON responses
+- Error handling
+
+## Infrastructure
+
+- PostgreSQL
+- Repository pattern
+- Service layer
+- Middleware
+- Structured logging with Zerolog
+- OpenAPI specification
+
+---
+
+# Architecture
 
 ```text
-.
-├── cmd/
-│   └── api/                    # Application entrypoint
-├── internal/
-│   ├── config/                 # Configuration loading and management
-│   ├── domain/                 # Domain models and business rules
-│   ├── handler/                # HTTP handlers/controllers
-│   ├── repository/
-│   │   └── postgres/           # PostgreSQL repository implementations
-│   └── service/                # Application/business services
-├── migrations/                 # Database migration files
-└── test/                       # Integration and end-to-end tests
+HTTP Request
+    ↓
+Handler
+    ↓
+Service
+    ↓
+Repository
+    ↓
+PostgreSQL
+```
+
+Project structure:
+
+```text
+cmd/
+└── api/
+
+internal/
+├── config/
+├── domain/
+├── handler/
+├── logger/
+├── middleware/
+├── repository/
+│   └── postgres/
+└── service/
+
+migrations/
+openapi/
+```
+
+---
+
+# Technologies
+
+- Go
+- Gin
+- PostgreSQL
+- PGX
+- Zerolog
+- OpenAPI 3.0
+
+---
+
+# Domain Model
+
+## Product
+
+```text
+Product
+├── ID
+├── Name
+└── CreatedAt
+```
+
+## Inventory
+
+```text
+Inventory
+├── ProductID
+└── Quantity
+```
+
+## Order
+
+```text
+Order
+├── ID
+├── Status
+├── Comment
+├── CreatedAt
+└── Items
+```
+
+## Order Item
+
+```text
+OrderItem
+├── ID
+├── OrderID
+├── ProductID
+└── Quantity
+```
+
+---
+
+# API Endpoints
+
+## Health Check
+
+### Request
+
+```http
+GET /health
+```
+
+### Response
+
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
+## Get Product
+
+### Request
+
+```http
+GET /products/{id}
+```
+
+### Response
+
+```json
+{
+  "id": 1,
+  "name": "Mug",
+  "createdAt": "2026-07-15T11:54:56Z"
+}
+```
+
+---
+
+## Create Order
+
+### Request
+
+```http
+POST /orders
+```
+
+```json
+{
+  "productId": 1,
+  "quantity": 3,
+  "comment": "urgent"
+}
+```
+
+### Response
+
+```http
+201 Created
+```
+
+---
+
+## Get Order
+
+### Request
+
+```http
+GET /orders/{id}
+```
+
+### Response
+
+```json
+{
+  "id": 3,
+  "status": "NEW",
+  "comment": null,
+  "createdAt": "2026-07-16T14:46:28Z",
+  "items": [
+    {
+      "id": 1,
+      "orderId": 3,
+      "productId": 1,
+      "quantity": 3
+    }
+  ]
+}
+```
+
+---
+
+## Update Order Status
+
+### Request
+
+```http
+PATCH /orders/{id}/status
+```
+
+```json
+{
+  "status": "COMPLETED"
+}
+```
+
+### Response
+
+```http
+200 OK
+```
+
+---
+
+# Validation
+
+Create order request validation:
+
+```json
+{
+  "productId": 1,
+  "quantity": 5
+}
+```
+
+Rules:
+
+- productId > 0
+- quantity > 0
+
+Invalid requests return:
+
+```http
+400 Bad Request
+```
+
+---
+
+# Error Handling
+
+## Product Not Found
+
+```json
+{
+  "error": "product not found"
+}
+```
+
+Response:
+
+```http
+404 Not Found
+```
+
+## Order Not Found
+
+```json
+{
+  "error": "order not found"
+}
+```
+
+Response:
+
+```http
+404 Not Found
+```
+
+## Insufficient Stock
+
+```json
+{
+  "error": "insufficient stock"
+}
+```
+
+Response:
+
+```http
+409 Conflict
+```
+
+---
+
+# Middleware
+
+## Logger
+
+Logs every incoming request:
+
+```text
+INF http request method=GET path=/products/1 status=200
+```
+
+## Recovery
+
+Recovers from panic and prevents application shutdown:
+
+```json
+{
+  "error": "internal server error"
+}
+```
+
+---
+
+# Database
+
+Main tables:
+
+```sql
+products
+inventory
+orders
+order_items
+```
+
+Relations:
+
+```text
+orders
+    │
+    └── order_items
+            │
+            └── products
+```
+
+---
+
+# Running Locally
+
+## Requirements
+
+- Go 1.24+
+- PostgreSQL
+
+## Environment Variables
+
+Create `.env`:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=wms
+DB_SSLMODE=disable
+```
+
+## Run
+
+```bash
+go run ./cmd/api
+```
+
+Server:
+
+```text
+http://localhost:8080
+```
+
+---
+
+# Tests
+
+Run all tests:
+
+```bash
+go test ./...
+```
+
+Run service tests:
+
+```bash
+go test ./internal/service
+```
+
+Run handler tests:
+
+```bash
+go test ./internal/handler
+```
+
+---
+
+# OpenAPI
+
+OpenAPI specification:
+
+```text
+openapi/openapi.yaml
+```
+
+The specification describes:
+
+- Products API
+- Orders API
+- Request schemas
+- Response schemas
+- Error responses
+
+---
+
+# Future Improvements
+
+- Database transactions for order creation
+- Inventory deduction after order creation
+- Order status validation
+- Swagger UI
+- Docker Compose
+- Connection pooling (pgxpool)
+- JWT authentication
+- Integration tests
+
+---
+WMS project created as a backend learning project focused on Go, REST API design, PostgreSQL, testing, and clean architecture.
