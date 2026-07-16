@@ -1,13 +1,8 @@
-<h1 align="center">WMS API</h1>
+# WMS API
 
 <p align="center">
-  <img src="assets/images/wms.pngalign="center">
-  Warehouse Management System implemented in Go
+  <img src="assets/images/wms.png">
 </p>
-
----
-
-Warehouse Management System (WMS) implemented in Go.
 
 The project exposes a REST API for managing products and orders, using PostgreSQL as the persistence layer and Gin as the HTTP framework.
 
@@ -80,8 +75,6 @@ internal/
 
 migrations/
 openapi/
-assets/
-└── images/
 ```
 
 ---
@@ -149,6 +142,12 @@ OrderItem
 GET /health
 ```
 
+### CURL
+
+```bash
+curl http://localhost:8080/health
+```
+
 ### Response
 
 ```json
@@ -165,6 +164,12 @@ GET /health
 
 ```http
 GET /products/{id}
+```
+
+### CURL
+
+```bash
+curl http://localhost:8080/products/1
 ```
 
 ### Response
@@ -195,6 +200,18 @@ POST /orders
 }
 ```
 
+### CURL
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": 1,
+    "quantity": 3,
+    "comment": "urgent"
+  }'
+```
+
 ### Response
 
 ```http
@@ -209,6 +226,12 @@ POST /orders
 
 ```http
 GET /orders/{id}
+```
+
+### CURL
+
+```bash
+curl http://localhost:8080/orders/3
 ```
 
 ### Response
@@ -246,68 +269,7 @@ PATCH /orders/{id}/status
 }
 ```
 
-### Response
-
-```http
-200 OK
-```
-
----
-
-# CURL Examples
-
-## Health Check
-
-```bash
-curl http://localhost:8080/health
-```
-
----
-
-## Get Product
-
-```bash
-curl http://localhost:8080/products/1
-```
-
----
-
-## Create Order
-
-```bash
-curl -X POST http://localhost:8080/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "productId": 1,
-    "quantity": 3
-  }'
-```
-
----
-
-## Create Order With Comment
-
-```bash
-curl -X POST http://localhost:8080/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "productId": 1,
-    "quantity": 3,
-    "comment": "urgent"
-  }'
-```
-
----
-
-## Get Order
-
-```bash
-curl http://localhost:8080/orders/3
-```
-
----
-
-## Update Order Status
+### CURL
 
 ```bash
 curl -X PATCH http://localhost:8080/orders/3/status \
@@ -317,67 +279,10 @@ curl -X PATCH http://localhost:8080/orders/3/status \
   }'
 ```
 
----
+### Response
 
-## Product Not Found
-
-```bash
-curl http://localhost:8080/products/999
-```
-
-Response:
-
-```json
-{
-  "error": "product not found"
-}
-```
-
----
-
-## Order Not Found
-
-```bash
-curl http://localhost:8080/orders/999
-```
-
-Response:
-
-```json
-{
-  "error": "order not found"
-}
-```
-
----
-
-## Invalid Request
-
-```bash
-curl -X POST http://localhost:8080/orders \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
----
-
-## Insufficient Stock
-
-```bash
-curl -X POST http://localhost:8080/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "productId": 1,
-    "quantity": 99999
-  }'
-```
-
-Response:
-
-```json
-{
-  "error": "insufficient stock"
-}
+```http
+200 OK
 ```
 
 ---
@@ -460,12 +365,6 @@ Logs every incoming request:
 
 ```text
 INF http request method=GET path=/products/1 status=200
-```
-
-Example:
-
-```text
-2026-07-16T13:37:10+02:00 INF http request duration=0 method=POST path=/orders status=201
 ```
 
 ## Recovery
