@@ -13,6 +13,19 @@ type MockOrderRepository struct {
 	savedOrder *domain.Order
 }
 
+type MockOrderItemRepository struct {
+	createErr error
+	items     []domain.OrderItem
+}
+
+func (m *MockOrderItemRepository) Create(item *domain.OrderItem) error {
+	return m.createErr
+}
+
+func (m *MockOrderItemRepository) GetByOrderID(orderID int64) ([]domain.OrderItem, error) {
+	return m.items, nil
+}
+
 func (m *MockOrderRepository) Create(order *domain.Order) error {
 	m.created = true
 	m.savedOrder = order
@@ -74,8 +87,11 @@ func TestHasEnoughStock(t *testing.T) {
 				err:       test.err,
 			}
 
+			orderItemRepo := &MockOrderItemRepository{}
+
 			service := NewOrderService(
 				&MockOrderRepository{},
+				orderItemRepo,
 				inventoryRepo,
 			)
 
@@ -138,8 +154,11 @@ func TestCanFulfillOrder(t *testing.T) {
 				err:       test.err,
 			}
 
+			orderItemRepo := &MockOrderItemRepository{}
+
 			service := NewOrderService(
 				&MockOrderRepository{},
+				orderItemRepo,
 				inventoryRepo,
 			)
 
@@ -194,9 +213,11 @@ func TestCreateOrder(t *testing.T) {
 			}
 
 			orderRepo := &MockOrderRepository{}
+			orderItemRepo := &MockOrderItemRepository{}
 
 			service := NewOrderService(
 				orderRepo,
+				orderItemRepo,
 				inventoryRepo,
 			)
 
@@ -228,9 +249,11 @@ func TestCreateOrderWithComment(t *testing.T) {
 	}
 
 	orderRepo := &MockOrderRepository{}
+	orderItemRepo := &MockOrderItemRepository{}
 
 	service := NewOrderService(
 		orderRepo,
+		orderItemRepo,
 		inventoryRepo,
 	)
 

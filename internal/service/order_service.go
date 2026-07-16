@@ -8,14 +8,17 @@ import (
 type OrderService struct {
 	orderRepository     repository.OrderRepository
 	inventoryRepository repository.InventoryRepository
+	orderItemRepository repository.OrderItemRepository
 }
 
 func NewOrderService(
 	orderRepository repository.OrderRepository,
+	orderItemRepository repository.OrderItemRepository,
 	inventoryRepository repository.InventoryRepository,
 ) *OrderService {
 	return &OrderService{
 		orderRepository:     orderRepository,
+		orderItemRepository: orderItemRepository,
 		inventoryRepository: inventoryRepository,
 	}
 }
@@ -58,5 +61,36 @@ func (s *OrderService) CreateOrder(productID int64, quantity int, comment *strin
 		Comment: comment,
 	}
 
-	return s.orderRepository.Create(order)
+	err = s.orderRepository.Create(order)
+	if err != nil {
+		return err
+	}
+
+	item := &domain.OrderItem{
+		OrderID:   order.ID,
+		ProductID: productID,
+		Quantity:  quantity,
+	}
+
+	return s.orderItemRepository.Create(item)
+}
+
+func (s *OrderService) GetOrder(id int64) (*domain.Order, error) {
+	order, err := s.orderRepository.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.orderItemRepository.GetByOrderID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	order.Items = items
+
+	return order, nil
+}
+
+func (s *OrderService) UpdateStatus(id int64, status string) error {
+	return s.orderRepository.UpdateStatus(id, status)
 }

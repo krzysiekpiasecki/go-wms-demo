@@ -17,3 +17,8 @@ type OrderRepository interface {
 	GetByID(id int64) (*domain.Order, error)
 	UpdateStatus(id int64, status string) error
 }
+
+type OrderItemRepository interface {
+	Create(item *domain.OrderItem) error
+	GetByOrderID(orderID int64) ([]domain.OrderItem, error)
+}

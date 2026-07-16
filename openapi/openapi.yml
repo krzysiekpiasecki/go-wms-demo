@@ -17,6 +17,10 @@ paths:
       responses:
         "200":
           description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
         "404":
           description: Product not found
 
@@ -28,7 +32,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              $ref: '#/components/schemas/CreateOrderRequest'
       responses:
         "201":
           description: Order created
@@ -49,9 +53,13 @@ paths:
       responses:
         "200":
           description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
         "404":
           description: Order not found
-  
+
   /orders/{id}/status:
     patch:
       summary: Update order status
@@ -66,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              $ref: '#/components/schemas/UpdateOrderStatusRequest'
       responses:
         "200":
           description: Status updated
@@ -76,4 +84,78 @@ paths:
           description: Order not found
 
 components:
-  schemas: {}
+  schemas:
+    ProductResponse:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        comment:
+          type: string
+
+    UpdateOrderStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+
+    OrderItemResponse:
+      type: object
+      required:
+        - id
+        - orderId
+        - productId
+        - quantity
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        productId:
+          type: integer
+        quantity:
+          type: integer
+
+    OrderResponse:
+      type: object
+      required:
+        - id
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'

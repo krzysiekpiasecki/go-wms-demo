@@ -7,6 +7,7 @@ import (
 	"github.com/kpiasecki/wms/internal/config"
 	"github.com/kpiasecki/wms/internal/handler"
 	"github.com/kpiasecki/wms/internal/logger"
+	"github.com/kpiasecki/wms/internal/middleware"
 	"github.com/kpiasecki/wms/internal/repository/postgres"
 	"github.com/kpiasecki/wms/internal/service"
 )
@@ -25,15 +26,37 @@ func main() {
 	}
 	defer db.Close(context.Background())
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(middleware.Logger())
+	router.Use(middleware.Recovery())
 
 	router.GET("/health", handler.Health)
 
+	router.GET("/panic", func(c *gin.Context) {
+		panic("test panic")
+	})
+
+	// Product handler
 	productRepository := postgres.NewProductRepository(db)
 	productService := service.NewProductService(productRepository)
 	productHandler := handler.NewProductHandler(productService)
-
 	router.GET("/products/:id", productHandler.GetProduct)
+
+	// Order handler
+	orderRepository := postgres.NewOrderRepository(db)
+	inventoryRepository := postgres.NewInventoryRepository(db)
+	orderItemRepository := postgres.NewOrderItemRepository(db)
+
+	orderService := service.NewOrderService(
+		orderRepository,
+		orderItemRepository,
+		inventoryRepository,
+	)
+
+	orderHandler := handler.NewOrderHandler(orderService)
+	router.POST("/orders", orderHandler.CreateOrder)
+	router.GET("/orders/:id", orderHandler.GetOrder)
+	router.PATCH("/orders/:id/status", orderHandler.UpdateStatus)
 
 	err = router.Run(":8080")
 

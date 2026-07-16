@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 
@@ -53,6 +54,10 @@ func (r *OrderRepository) GetByID(id int64) (*domain.Order, error) {
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrOrderNotFound
+		}
+
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func (r *OrderRepository) GetByID(id int64) (*domain.Order, error) {
 }
 
 func (r *OrderRepository) UpdateStatus(id int64, status string) error {
-	_, err := r.db.Exec(
+	result, err := r.db.Exec(
 		context.Background(),
 		`
         UPDATE orders
@@ -71,5 +76,13 @@ func (r *OrderRepository) UpdateStatus(id int64, status string) error {
 		id,
 	)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if result.RowsAffected() == 0 {
+		return domain.ErrOrderNotFound
+	}
+
+	return nil
 }
