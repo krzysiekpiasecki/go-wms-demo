@@ -1,7 +1,7 @@
 <h1 align="center">WMS API</h1>
 
 <p align="center">
-  <img src="assets/images/wms.png align="center">
+  <img src="assets/images/wms.png" align="center">
   Warehouse Management System implemented in Go
 </p>
 
