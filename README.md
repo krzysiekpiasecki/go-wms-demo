@@ -1,7 +1,8 @@
 # WMS API
 
 <p align="center">
-  <img src="assets/images/wms.png">
+  <img src="assets/images/wms.png" align="center">
+  Warehouse Management System implemented in Go
 </p>
 
 The project exposes a REST API for managing products and orders, using PostgreSQL as the persistence layer and Gin as the HTTP framework.
