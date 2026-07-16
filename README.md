@@ -1,4 +1,11 @@
-# WMS API
+<h1 align="center">WMS API</h1>
+
+<p align="center">
+  <img src="assets/images/wms.pngalign="center">
+  Warehouse Management System implemented in Go
+</p>
+
+---
 
 Warehouse Management System (WMS) implemented in Go.
 
@@ -73,6 +80,8 @@ internal/
 
 migrations/
 openapi/
+assets/
+└── images/
 ```
 
 ---
@@ -245,6 +254,134 @@ PATCH /orders/{id}/status
 
 ---
 
+# CURL Examples
+
+## Health Check
+
+```bash
+curl http://localhost:8080/health
+```
+
+---
+
+## Get Product
+
+```bash
+curl http://localhost:8080/products/1
+```
+
+---
+
+## Create Order
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": 1,
+    "quantity": 3
+  }'
+```
+
+---
+
+## Create Order With Comment
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": 1,
+    "quantity": 3,
+    "comment": "urgent"
+  }'
+```
+
+---
+
+## Get Order
+
+```bash
+curl http://localhost:8080/orders/3
+```
+
+---
+
+## Update Order Status
+
+```bash
+curl -X PATCH http://localhost:8080/orders/3/status \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "COMPLETED"
+  }'
+```
+
+---
+
+## Product Not Found
+
+```bash
+curl http://localhost:8080/products/999
+```
+
+Response:
+
+```json
+{
+  "error": "product not found"
+}
+```
+
+---
+
+## Order Not Found
+
+```bash
+curl http://localhost:8080/orders/999
+```
+
+Response:
+
+```json
+{
+  "error": "order not found"
+}
+```
+
+---
+
+## Invalid Request
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+---
+
+## Insufficient Stock
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": 1,
+    "quantity": 99999
+  }'
+```
+
+Response:
+
+```json
+{
+  "error": "insufficient stock"
+}
+```
+
+---
+
 # Validation
 
 Create order request validation:
@@ -325,6 +462,12 @@ Logs every incoming request:
 INF http request method=GET path=/products/1 status=200
 ```
 
+Example:
+
+```text
+2026-07-16T13:37:10+02:00 INF http request duration=0 method=POST path=/orders status=201
+```
+
 ## Recovery
 
 Recovers from panic and prevents application shutdown:
@@ -356,6 +499,55 @@ orders
     └── order_items
             │
             └── products
+```
+
+---
+
+# Database Migration
+
+Create database:
+
+```sql
+CREATE DATABASE wms;
+```
+
+Connect:
+
+```bash
+psql -U postgres -d wms
+```
+
+Apply migration scripts from the `migrations` directory in order:
+
+```bash
+psql -U postgres -d wms -f migrations/001_create_products.sql
+psql -U postgres -d wms -f migrations/002_create_inventory.sql
+psql -U postgres -d wms -f migrations/003_create_orders.sql
+psql -U postgres -d wms -f migrations/004_create_order_items.sql
+```
+
+Verify tables:
+
+```sql
+\dt
+```
+
+Expected output:
+
+```text
+ inventory
+ order_items
+ orders
+ products
+```
+
+Inspect schemas:
+
+```sql
+\d products
+\d inventory
+\d orders
+\d order_items
 ```
 
 ---
@@ -446,4 +638,5 @@ The specification describes:
 - Integration tests
 
 ---
+
 WMS project created as a backend learning project focused on Go, REST API design, PostgreSQL, testing, and clean architecture.
