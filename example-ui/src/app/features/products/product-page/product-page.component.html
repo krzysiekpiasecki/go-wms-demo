@@ -1,0 +1,46 @@
+<div class="card">
+
+  <div class="card-header d-flex justify-content-between align-items-center">
+
+    <h5 class="mb-0">
+      Products
+    </h5>
+
+    <div class="d-flex gap-2">
+
+      <input
+        class="form-control"
+        placeholder="Product name"
+        [(ngModel)]="newProductName">
+
+      <input
+        class="form-control"
+        type="number"
+        placeholder="Quantity"
+        [(ngModel)]="newProductQuantity">
+
+      <button
+        class="btn btn-success"
+        (click)="createProduct()">
+
+        +
+
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card-body">
+
+    <ag-grid-angular
+      class="ag-theme-quartz"
+      domLayout="autoHeight"
+      [rowData]="products"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef">
+    </ag-grid-angular>
+
+  </div>
+
+</div>

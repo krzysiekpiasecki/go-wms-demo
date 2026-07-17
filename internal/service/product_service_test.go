@@ -15,7 +15,27 @@ type MockProductRepository struct {
 	err     error
 }
 
-func (m *MockProductRepository) Create(product *domain.Product) error {
+func (m *MockProductRepository) Create(
+	product *domain.Product,
+) error {
+	return nil
+}
+
+func (m *MockProductRepository) List() ([]domain.Product, error) {
+	return nil, nil
+}
+
+func (m *MockInventoryRepository) Create(
+	productID int64,
+	quantity int,
+) error {
+	return nil
+}
+
+func (m *MockInventoryRepository) DecreaseStock(
+	productID int64,
+	quantity int,
+) error {
 	return nil
 }
 
@@ -33,7 +53,7 @@ func TestGetProduct(t *testing.T) {
 		product: expected,
 	}
 
-	service := NewProductService(repo)
+	service := NewProductService(repo, &MockInventoryRepository{})
 
 	actual, err := service.GetProduct(1)
 
@@ -75,7 +95,7 @@ func TestGetProductTableDriven(t *testing.T) {
 				err:     test.err,
 			}
 
-			service := NewProductService(repo)
+			service := NewProductService(repo, &MockInventoryRepository{})
 
 			_, err := service.GetProduct(1)
 

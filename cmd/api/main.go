@@ -1,8 +1,7 @@
 package main
 
 import (
-	"context"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kpiasecki/wms/internal/config"
 	"github.com/kpiasecki/wms/internal/handler"
@@ -24,9 +23,27 @@ func main() {
 			Err(err).
 			Msg("failed to connect to database")
 	}
-	defer db.Close(context.Background())
+	defer db.Close()
 
 	router := gin.New()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:4200",
+		},
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PATCH",
+			"OPTIONS",
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Accept",
+		},
+	}))
+
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recovery())
 
@@ -36,15 +53,19 @@ func main() {
 		panic("test panic")
 	})
 
+	inventoryRepository := postgres.NewInventoryRepository(db)
+
 	// Product handler
 	productRepository := postgres.NewProductRepository(db)
-	productService := service.NewProductService(productRepository)
+	productService := service.NewProductService(productRepository, inventoryRepository)
 	productHandler := handler.NewProductHandler(productService)
 	router.GET("/products/:id", productHandler.GetProduct)
+	router.GET("/products", productHandler.GetProducts)
+	router.POST("/products", productHandler.CreateProduct)
 
 	// Order handler
 	orderRepository := postgres.NewOrderRepository(db)
-	inventoryRepository := postgres.NewInventoryRepository(db)
+
 	orderItemRepository := postgres.NewOrderItemRepository(db)
 
 	orderService := service.NewOrderService(
@@ -57,6 +78,7 @@ func main() {
 	router.POST("/orders", orderHandler.CreateOrder)
 	router.GET("/orders/:id", orderHandler.GetOrder)
 	router.PATCH("/orders/:id/status", orderHandler.UpdateStatus)
+	router.GET("/orders", orderHandler.GetOrders)
 
 	err = router.Run(":8080")
 

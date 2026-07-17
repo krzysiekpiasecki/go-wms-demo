@@ -5,6 +5,11 @@ import (
 	"github.com/kpiasecki/wms/internal/repository"
 )
 
+type CreateOrderItem struct {
+	ProductID int64
+	Quantity  int
+}
+
 type OrderService struct {
 	orderRepository     repository.OrderRepository
 	inventoryRepository repository.InventoryRepository
@@ -50,10 +55,20 @@ func (s *OrderService) CanFulfillOrder(productID int64, quantity int) error {
 	return nil
 }
 
-func (s *OrderService) CreateOrder(productID int64, quantity int, comment *string) error {
-	err := s.CanFulfillOrder(productID, quantity)
-	if err != nil {
-		return err
+func (s *OrderService) CreateOrder(
+	items []CreateOrderItem,
+	comment *string,
+) error {
+
+	for _, item := range items {
+		err := s.CanFulfillOrder(
+			item.ProductID,
+			item.Quantity,
+		)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	order := &domain.Order{
@@ -61,18 +76,34 @@ func (s *OrderService) CreateOrder(productID int64, quantity int, comment *strin
 		Comment: comment,
 	}
 
-	err = s.orderRepository.Create(order)
+	err := s.orderRepository.Create(order)
 	if err != nil {
 		return err
 	}
 
-	item := &domain.OrderItem{
-		OrderID:   order.ID,
-		ProductID: productID,
-		Quantity:  quantity,
+	for _, item := range items {
+
+		orderItem := &domain.OrderItem{
+			OrderID:   order.ID,
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+		}
+
+		err = s.orderItemRepository.Create(orderItem)
+		if err != nil {
+			return err
+		}
+		err = s.inventoryRepository.DecreaseStock(
+			item.ProductID,
+			item.Quantity,
+		)
+
+		if err != nil {
+			return err
+		}
 	}
 
-	return s.orderItemRepository.Create(item)
+	return nil
 }
 
 func (s *OrderService) GetOrder(id int64) (*domain.Order, error) {
@@ -93,4 +124,8 @@ func (s *OrderService) GetOrder(id int64) (*domain.Order, error) {
 
 func (s *OrderService) UpdateStatus(id int64, status string) error {
 	return s.orderRepository.UpdateStatus(id, status)
+}
+
+func (s *OrderService) GetOrders() ([]domain.Order, error) {
+	return s.orderRepository.List()
 }

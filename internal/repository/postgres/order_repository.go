@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kpiasecki/wms/internal/domain"
 	"github.com/kpiasecki/wms/internal/repository"
@@ -13,10 +14,10 @@ import (
 var _ repository.OrderRepository = (*OrderRepository)(nil)
 
 type OrderRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewOrderRepository(db *pgx.Conn) *OrderRepository {
+func NewOrderRepository(db *pgxpool.Pool) *OrderRepository {
 	return &OrderRepository{
 		db: db,
 	}
@@ -85,4 +86,49 @@ func (r *OrderRepository) UpdateStatus(id int64, status string) error {
 	}
 
 	return nil
+}
+
+func (r *OrderRepository) List() ([]domain.Order, error) {
+	rows, err := r.db.Query(
+		context.Background(),
+		`
+        SELECT
+            id,
+            status,
+            comment,
+            created_at
+        FROM orders
+        ORDER BY id DESC
+        `,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var orders []domain.Order
+
+	for rows.Next() {
+		var order domain.Order
+
+		err := rows.Scan(
+			&order.ID,
+			&order.Status,
+			&order.Comment,
+			&order.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(
+			orders,
+			order,
+		)
+	}
+
+	return orders, nil
 }

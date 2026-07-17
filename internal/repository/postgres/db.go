@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kpiasecki/wms/internal/config"
 )
 
-func NewDatabase(cfg *config.Config) (*pgx.Conn, error) {
+func NewDatabase(cfg *config.Config) (*pgxpool.Pool, error) {
 
 	connString := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -20,14 +20,17 @@ func NewDatabase(cfg *config.Config) (*pgx.Conn, error) {
 		cfg.DBSSLMode,
 	)
 
-	conn, err := pgx.Connect(
+	pool, err := pgxpool.New(
 		context.Background(),
 		connString,
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("cannot connect to database: %w", err)
+		return nil, fmt.Errorf(
+			"cannot connect to database: %w",
+			err,
+		)
 	}
 
-	return conn, nil
+	return pool, nil
 }

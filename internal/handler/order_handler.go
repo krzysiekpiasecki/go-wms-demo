@@ -20,7 +20,6 @@ func NewOrderHandler(orderService *service.OrderService) *OrderHandler {
 		orderService: orderService,
 	}
 }
-
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var request CreateOrderRequest
 
@@ -31,9 +30,20 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	var items []service.CreateOrderItem
+
+	for _, item := range request.Items {
+		items = append(
+			items,
+			service.CreateOrderItem{
+				ProductID: item.ProductID,
+				Quantity:  item.Quantity,
+			},
+		)
+	}
+
 	err := h.orderService.CreateOrder(
-		request.ProductID,
-		request.Quantity,
+		items,
 		request.Comment,
 	)
 
@@ -131,4 +141,23 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (h *OrderHandler) GetOrders(c *gin.Context) {
+	orders, err := h.orderService.GetOrders()
+
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{
+				"error": err.Error(),
+			},
+		)
+		return
+	}
+
+	c.JSON(
+		http.StatusOK,
+		orders,
+	)
 }

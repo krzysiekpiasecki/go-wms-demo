@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kpiasecki/wms/internal/domain"
 	"github.com/kpiasecki/wms/internal/repository"
@@ -12,10 +12,10 @@ import (
 var _ repository.OrderItemRepository = (*OrderItemRepository)(nil)
 
 type OrderItemRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewOrderItemRepository(db *pgx.Conn) *OrderItemRepository {
+func NewOrderItemRepository(db *pgxpool.Pool) *OrderItemRepository {
 	return &OrderItemRepository{
 		db: db,
 	}

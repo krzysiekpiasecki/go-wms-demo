@@ -1,0 +1,66 @@
+<div class="card shadow-sm">
+
+  <div class="card-header d-flex justify-content-between">
+
+    <h5 class="mb-0">
+      Orders
+    </h5>
+
+  <button
+    class="btn btn-success"
+    routerLink="/orders/new">
+    +
+  </button>
+
+  </div>
+
+  <div class="card-body">
+
+
+    <ag-grid-angular class="ag-theme-quartz" style="width:100%;" domLayout="autoHeight" [rowData]="orders"
+      [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" (rowClicked)="onRowClicked($event)">
+    </ag-grid-angular>
+
+
+    @if (selectedOrder) {
+
+    <div class="card mt-3">
+
+      <div class="card-header">
+
+        Order #{{ selectedOrder.id }}
+
+      </div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <strong>Status:</strong>
+          {{ selectedOrder.status }}
+        </div>
+
+
+        @if (selectedOrder.items?.length) {
+
+        <ag-grid-angular class="ag-theme-quartz" style="width:100%;"  domLayout="autoHeight"  [rowData]="selectedOrder.items"
+          [columnDefs]="itemColumnDefs" [defaultColDef]="defaultColDef">
+        </ag-grid-angular>
+
+        } @else {
+
+        <div class="alert alert-info mb-0">
+          No order items found.
+        </div>
+
+        }
+
+
+      </div>
+
+    </div>
+
+    }
+
+  </div>
+
+</div>

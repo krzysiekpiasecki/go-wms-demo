@@ -1,0 +1,95 @@
+<div class="card shadow-sm">
+
+  <div class="card-header">
+    <h5 class="mb-0">
+      Create Order
+    </h5>
+  </div>
+
+  <div class="card-body">
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <div class="mb-3">
+
+        <label class="form-label">
+          Products
+        </label>
+
+        @for (item of items; track $index) {
+
+        <div class="row mb-2">
+
+          <div class="col-md-6">
+
+            <select class="form-select" [(ngModel)]="item.productId" [ngModelOptions]="{standalone:true}">
+
+              @for (product of products; track product.id) {
+
+
+              <option [ngValue]="product.id">
+                {{ product.name }} ({{ product.quantity }})
+              </option>
+
+
+              }
+
+            </select>
+
+          </div>
+
+          <div class="col-md-3">
+
+            <input class="form-control" type="number" min="1" [(ngModel)]="item.quantity"
+              [ngModelOptions]="{standalone:true}">
+
+          </div>
+
+          <div class="col-md-3">
+
+            <button type="button" class="btn btn-danger w-100" (click)="removeItem($index)">
+
+              Remove
+
+            </button>
+
+          </div>
+
+        </div>
+
+        }
+
+        <button type="button" class="btn btn-success mt-2" (click)="addItem()">
+
+          + Add Product
+
+        </button>
+
+      </div>
+
+      <div class="mb-3">
+
+        <label class="form-label">
+          Comment
+        </label>
+
+        <textarea class="form-control" rows="3" formControlName="comment">
+        </textarea>
+
+      </div>
+
+      <div class="mt-4">
+
+        <button type="submit" class="btn btn-primary">
+
+          Create Order
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

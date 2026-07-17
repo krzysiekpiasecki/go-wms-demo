@@ -49,3 +49,23 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 
 	c.JSON(http.StatusOK, product)
 }
+
+func (h *ProductHandler) GetProducts(c *gin.Context) {
+	products, err := h.productService.GetProducts()
+
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			gin.H{
+				"error": err.Error(),
+			},
+		)
+
+		return
+	}
+
+	c.JSON(
+		http.StatusOK,
+		products,
+	)
+}

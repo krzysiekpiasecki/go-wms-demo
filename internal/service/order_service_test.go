@@ -36,6 +36,10 @@ func (m *MockOrderRepository) GetByID(id int64) (*domain.Order, error) {
 	return nil, nil
 }
 
+func (m *MockOrderRepository) List() ([]domain.Order, error) {
+	return nil, nil
+}
+
 func (m *MockOrderRepository) UpdateStatus(id int64, status string) error {
 	return nil
 }
@@ -221,7 +225,15 @@ func TestCreateOrder(t *testing.T) {
 				inventoryRepo,
 			)
 
-			err := service.CreateOrder(1, test.quantity, nil)
+			err := service.CreateOrder(
+				[]CreateOrderItem{
+					{
+						ProductID: 1,
+						Quantity:  test.quantity,
+					},
+				},
+				nil,
+			)
 
 			if test.expectedErr == nil && !orderRepo.created {
 				t.Fatal("expected order to be created")
@@ -257,7 +269,16 @@ func TestCreateOrderWithComment(t *testing.T) {
 		inventoryRepo,
 	)
 
-	err := service.CreateOrder(1, 10, &comment)
+	err := service.CreateOrder(
+		[]CreateOrderItem{
+			{
+				ProductID: 1,
+				Quantity:  10,
+			},
+		},
+		&comment,
+	)
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
